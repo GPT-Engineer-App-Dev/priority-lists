@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { Box, Heading, Input, Button, List, ListItem, ListIcon, IconButton } from '@chakra-ui/react';
-import { FaPlus, FaTrash } from 'react-icons/fa';
+import { Box, Heading, Input, Button, List, ListItem, ListIcon, IconButton, useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter } from '@chakra-ui/react';
+import { FaPlus, FaTrash, FaEdit } from 'react-icons/fa';
 
 const Index = () => {
   const [todos, setTodos] = useState([]);
   const [input, setInput] = useState('');
+  const [editingIndex, setEditingIndex] = useState(-1);
+  const [editingValue, setEditingValue] = useState('');
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const handleAddTodo = () => {
     if (input.trim() !== '') {
@@ -16,6 +19,19 @@ const Index = () => {
   const handleDeleteTodo = (index) => {
     const newTodos = todos.filter((_, i) => i !== index);
     setTodos(newTodos);
+  };
+
+  const handleEditTodo = (index) => {
+    setEditingIndex(index);
+    setEditingValue(todos[index]);
+    onOpen();
+  };
+
+  const handleSaveEdit = () => {
+    const newTodos = [...todos];
+    newTodos[editingIndex] = editingValue.trim();
+    setTodos(newTodos);
+    onClose();
   };
 
   return (
@@ -37,6 +53,13 @@ const Index = () => {
           <ListItem key={index} display="flex" alignItems="center">
             {todo}
             <IconButton
+              aria-label="Edit todo"
+              icon={<FaEdit />}
+              onClick={() => handleEditTodo(index)}
+              mr={2}
+              colorScheme="green"
+            />
+            <IconButton
               aria-label="Delete todo"
               icon={<FaTrash />}
               onClick={() => handleDeleteTodo(index)}
@@ -46,6 +69,26 @@ const Index = () => {
           </ListItem>
         ))}
       </List>
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Edit Todo</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Input
+              placeholder="Edit your task"
+              value={editingValue}
+              onChange={(e) => setEditingValue(e.target.value)}
+            />
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" mr={3} onClick={handleSaveEdit}>
+              Save
+            </Button>
+            <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };
